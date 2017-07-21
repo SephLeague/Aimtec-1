@@ -27,7 +27,7 @@ namespace ESeries.Champions
 
             Q = new Aimtec.SDK.Spell(SpellSlot.Q, 1450);
             W = new Aimtec.SDK.Spell(SpellSlot.W, 1100);
-            E = new Aimtec.SDK.Spell(SpellSlot.E, 1150);
+            E = new Aimtec.SDK.Spell(SpellSlot.E, 1050);
             R = new Aimtec.SDK.Spell(SpellSlot.R, 2500);
 
             Q.SetSkillshot(0.6f, 95f, float.MaxValue, false, Aimtec.SDK.Prediction.Skillshots.SkillshotType.Line);
@@ -149,7 +149,7 @@ namespace ESeries.Champions
                 new MenuBool("DrawQ", "Draw Q", false),
                 new MenuBool("DrawW", "Draw W", false),
                 new MenuBool("DrawE", "Draw E", false),
-                new MenuBool("DrawR", "Draw E", false),
+                new MenuBool("DrawR", "Draw R", false),
             };
 
             this.Config.Add(qmenu);
@@ -206,7 +206,7 @@ namespace ESeries.Champions
 
         private float UltRange
         {
-            get { return new float[] { 3520, 4840, 6160 }[Player.SpellBook.GetSpell(SpellSlot.E).Level - 1]; }
+            get { return new float[] { 3520, 4840, 6160 }[Player.SpellBook.GetSpell(SpellSlot.R).Level - 1]; }
         }
 
         private void TapKey_ValueChanged(MenuComponent sender, ValueChangedArgs args)
@@ -382,7 +382,7 @@ namespace ESeries.Champions
             if (this.Config["W"]["Laneclear"].Enabled)
             {
                 var result = GetCircularClearLocation(W.Range, W.Width, 2);
-                if (result != null)
+                if (result != null && result.numberOfMinionsHit >= 2)
                 {
                     W.Cast(result.CastPosition);
                 }
@@ -391,7 +391,7 @@ namespace ESeries.Champions
             if (this.Config["Q"]["Laneclear"].Enabled)
             {
                 var result = GetLineClearLocation(Q.ChargedMaxRange, Q.Width);
-                if (result != null)
+                if (result != null && result.numberOfMinionsHit >= 2)
                 {
                     if (result.numberOfMinionsHit >= 2)
                     {
@@ -469,7 +469,7 @@ namespace ESeries.Champions
 
         public LaneclearResult GetCircularClearLocation(float range, float width, int minHit)
         {
-            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidTarget(range, false, false) && x.IsEnemy);
+            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidTarget(range, false, false) && x.IsValidSpellTarget());
             var positions = minions.Select(x => x.ServerPosition.To2D()).ToList();
 
             if (positions.Any())
@@ -521,6 +521,7 @@ namespace ESeries.Champions
                         }
                     }
                 }
+
                 return results.MaxBy(x => x.numberOfMinionsHit);
             }
 
@@ -529,7 +530,7 @@ namespace ESeries.Champions
 
         public LaneclearResult GetLineClearLocation(float range, float width)
         {
-            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidTarget(Q.Range) && x.IsEnemy);
+            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidTarget(Q.Range) && x.IsValidSpellTarget());
 
             var positions = minions.Select(x => x.ServerPosition).ToList();
 
