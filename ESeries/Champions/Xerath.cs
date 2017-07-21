@@ -49,7 +49,6 @@ namespace ESeries.Champions
 
         private void Orbwalker_PreMove(object sender, Aimtec.SDK.Orbwalking.PreMoveEventArgs e)
         {
-            Orbwalker.MovingEnabled = false;
             if (this.UltimateTracker.CastingUltimate)
             {
                 e.Cancel = true;
