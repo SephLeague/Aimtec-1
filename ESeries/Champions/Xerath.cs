@@ -494,7 +494,7 @@ namespace ESeries.Champions
 
         public LaneclearResult GetCircularClearLocation(float range, float width, int minHit)
         {
-            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidTarget(range, false, false) && x.IsValidSpellTarget());
+            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(range));
             var positions = minions.Select(x => x.ServerPosition.To2D()).ToList();
 
             if (positions.Any())
@@ -555,7 +555,7 @@ namespace ESeries.Champions
 
         public LaneclearResult GetLineClearLocation(float range, float width)
         {
-            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidTarget(Q.Range) && x.IsValidSpellTarget());
+            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(range));
 
             var positions = minions.Select(x => x.ServerPosition).ToList();
 
