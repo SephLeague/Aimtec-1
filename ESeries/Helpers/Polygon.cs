@@ -12,7 +12,6 @@ namespace ESeries
 {
     public class DrawHelper
     {
-     
         public void DrawLine(Vector3 start, Vector3 end, Color color)
         {
             var screenStart = start.ToScreenPosition();

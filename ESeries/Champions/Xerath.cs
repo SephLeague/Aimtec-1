@@ -5,15 +5,18 @@ using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Menu.Config;
+using Aimtec.SDK.Prediction.Health;
 using Aimtec.SDK.Prediction.Skillshots;
 using Aimtec.SDK.TargetSelector;
 using Aimtec.SDK.Util;
 using Aimtec.SDK.Util.Cache;
 using ESeries.Abstractions;
+using ESeries.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Aimtec.SDK.Orbwalking;
 
 namespace ESeries.Champions
 {
@@ -40,15 +43,15 @@ namespace ESeries.Champions
 
             this.Menu();
 
-            Game.OnUpdate += this.Game_OnUpdate;
-            Orbwalker.PreAttack += this.Orbwalker_PreAttack;
-            Orbwalker.PreMove += this.Orbwalker_PreMove;
+            Game.OnUpdate += this.OnUpdate;
+            Orbwalker.PreAttack += this.PreAttack;
+            Orbwalker.PreMove += this.PreMove;
             Render.OnPresent += this.OnPresent;
-            Dash.HeroDashed += Dash_HeroDashed;
+            Dash.HeroDashed += this.OnDash;
             this.Attach();
         }
 
-        private void Dash_HeroDashed(object sender, Dash.DashArgs e)
+        protected override void OnDash(object sender, Dash.DashArgs e)
         {
             if (this.Config["Misc"]["AntiDash"].Enabled)
             {
@@ -66,7 +69,7 @@ namespace ESeries.Champions
             }
         }
 
-        private void Orbwalker_PreMove(object sender, Aimtec.SDK.Orbwalking.PreMoveEventArgs e)
+        protected override void PreMove(object sender, Aimtec.SDK.Orbwalking.PreMoveEventArgs e)
         {
             if (this.UltimateTracker.CastingUltimate)
             {
@@ -74,7 +77,7 @@ namespace ESeries.Champions
             }
         }
 
-        private void Orbwalker_PreAttack(object sender, Aimtec.SDK.Orbwalking.PreAttackEventArgs e)
+        protected override void PreAttack(object sender, Aimtec.SDK.Orbwalking.PreAttackEventArgs e)
         {
             if (this.UltimateTracker.CastingUltimate)
             {
@@ -82,7 +85,7 @@ namespace ESeries.Champions
             }
         }
 
-        private void Game_OnUpdate()
+        protected override void OnUpdate()
         {
             if (CurrentRMode == RMode.Autocast && this.UltimateTracker.CastingUltimate && R.Ready)
             {
@@ -187,6 +190,7 @@ namespace ESeries.Champions
             this.Config.Add(laneclear);
             this.Config.Add(rmenu);
             this.Config.Add(hcMenu);
+            this.Config.Add(misc);
             this.Config.Add(drawmenu);
 
         }
@@ -213,8 +217,6 @@ namespace ESeries.Champions
                 this.R.HitChance = (HitChance)args.GetNewValue<MenuList>().Value + 3;
             }
         }
-
-
 
         enum RMode
         {
@@ -304,7 +306,7 @@ namespace ESeries.Champions
             }
         }
 
-        private void Combo()
+        protected override void Combo()
         {
             if (this.Config["Combo"]["E"].Enabled)
             {
@@ -335,7 +337,7 @@ namespace ESeries.Champions
             }
         }
 
-        private void Harass()
+        protected override void Harass()
         {
             if (this.Config["Harass"]["E"].Enabled)
             {
@@ -366,7 +368,7 @@ namespace ESeries.Champions
             }
         }
 
-        private void Killsteal()
+        protected override void Killsteal()
         {
             if (this.Config["Killsteal"]["E"].Enabled)
             {
@@ -408,11 +410,11 @@ namespace ESeries.Champions
             }
         }
 
-        private void Laneclear()
+        protected override void Laneclear()
         {
             if (this.Config["Laneclear"]["W"].Enabled)
             {
-                var result = GetCircularClearLocation(W.Range, W.Width, 2);
+                var result = FarmHelper.GetCircularClearLocation(W.Range, W.Width, 2);
                 if (result != null && result.numberOfMinionsHit >= 2)
                 {
                     W.Cast(result.CastPosition);
@@ -421,7 +423,10 @@ namespace ESeries.Champions
 
             if (this.Config["Laneclear"]["Q"].Enabled)
             {
-                var result = GetLineClearLocation(Q.ChargedMaxRange, Q.Width);
+                var range = Q.IsCharging ? Q.Range : Q.ChargedMaxRange;
+
+                var result = FarmHelper.GetLineClearLocation(range, Q.Width);
+
                 if (result != null)
                 {
                     if (result.numberOfMinionsHit >= 2)
@@ -429,16 +434,28 @@ namespace ESeries.Champions
                         Q.Cast(result.CastPosition);
                     }
 
-
                     else if (Q.IsCharging && result.numberOfMinionsHit >= 1 && Q.ChargePercent > 80)
                     {
                         Q.Cast(result.CastPosition);
                     }
                 }
             }
+
+            if (this.E.Ready && this.Config["Laneclear"]["E"].Enabled)
+            {
+                if (!this.Orbwalker.IsWindingUp && !Orbwalker.CanAttack())
+                {
+                    var minion = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(E.Range) && HealthPrediction.Implementation.GetPrediction(x, (int) (E.Delay * 1000 + Player.Distance(x) / E.Speed * 1000)) <= Player.GetSpellDamage(x, SpellSlot.E) && E.GetPrediction(x).HitChance >= E.HitChance).FirstOrDefault();
+                    if (minion != null)
+                    {
+                        var pred = E.GetPrediction(minion);
+                        E.Cast(pred.CastPosition);
+                    } 
+                }
+            }
         }
 
-        private void Lasthit()
+        protected override void Lasthit()
         {
             if (this.Config["Combo"]["UseQ"].Enabled)
             {
@@ -457,7 +474,7 @@ namespace ESeries.Champions
         }
 
 
-        private void OnPresent()
+        protected override void OnPresent()
         {
             if (this.Config["Drawings"]["DrawQ"].Enabled)
             {
@@ -480,127 +497,10 @@ namespace ESeries.Champions
             }
         }
 
-        public class LaneclearResult
+        protected override void PostAttack(object sender, PostAttackEventArgs e)
         {
-            public LaneclearResult(int hit, Vector3 cp)
-            {
-                this.numberOfMinionsHit = hit;
-                this.CastPosition = cp;
-            }
-
-            public int numberOfMinionsHit = 0;
-            public Vector3 CastPosition;
+            throw new NotImplementedException();
         }
-
-        public LaneclearResult GetCircularClearLocation(float range, float width, int minHit)
-        {
-            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(range));
-            var positions = minions.Select(x => x.ServerPosition.To2D()).ToList();
-
-            if (positions.Any())
-            {
-                return new LaneclearResult(1, positions.FirstOrDefault().To3D());
-            }
-
-            var positionCount = positions.Count;
-
-            var lcount = Math.Max(positionCount, 4);
-
-            if (positions.Count >= minHit)
-            {
-                Vector2 center;
-                float radius;
-
-                Mec.FindMinimalBoundingCircle(positions, out center, out radius);
-
-                HashSet<LaneclearResult> results = new HashSet<LaneclearResult>();
-
-                var hitMinions = minions.Where(x => x.Distance(center) <= 0.95f * radius);
-
-                var count = hitMinions.Count();
-
-                var result = new LaneclearResult(count, center.To3D());
-
-                results.Add(result);
-
-                for (int i = 0; i < lcount; i++)
-                {
-                    for (int j = 0; j < count; j++)
-                    {
-                        if (i == j)
-                        {
-                            continue;
-                        }
-
-                        var positions2 = new Vector2[] { positions[i], positions[j] };
-
-                        Mec.FindMinimalBoundingCircle(positions, out center, out radius);
-
-                        hitMinions = minions.Where(x => x.Distance(center) <= 0.9f * radius);
-
-                        count = hitMinions.Count();
-
-                        if (count >= minHit)
-                        {
-                            results.Add(new LaneclearResult(count, center.To3D()));
-                        }
-                    }
-                }
-
-                return results.MaxBy(x => x.numberOfMinionsHit);
-            }
-
-            return null;
-        }
-
-        public LaneclearResult GetLineClearLocation(float range, float width)
-        {
-            var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(range));
-
-            var positions = minions.Select(x => x.ServerPosition).ToList();
-
-            var locations = new List<Vector3>();
-
-            locations.AddRange(positions);
-
-            var max = positions.Count();
-
-            for (var i = 0; i < max; i++)
-            {
-                for (var j = 0; j < max; j++)
-                {
-                    if (positions[j] != positions[i])
-                    {
-                        locations.Add((positions[j] + positions[i]) / 2);
-                    }
-                }
-            }
-
-
-            HashSet<LaneclearResult> results = new HashSet<LaneclearResult>();
-
-            foreach (var p in locations)
-            {
-                var rect = new Rectangle(Player.Position, p, width);
-
-                var count = 0;
-
-                foreach (var m in minions)
-                {
-                    if (rect.Contains(m.Position))
-                    {
-                        count++;
-                    }
-                }
-
-                results.Add(new LaneclearResult(count, p));
-            }
-
-            var maxhit = results.MaxBy(x => x.numberOfMinionsHit);
-
-            return maxhit;
-        }
-
 
         class UltTracker
         {

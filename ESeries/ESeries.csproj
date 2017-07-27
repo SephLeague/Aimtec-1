@@ -52,15 +52,14 @@
     <Compile Include="Abstractions\AChampion.cs" />
     <Compile Include="Abstractions\IChampion.cs" />
     <Compile Include="Champions\Xerath.cs" />
+    <Compile Include="Helpers\FarmHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Polygon.cs" />
+    <Compile Include="Helpers\Polygon.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

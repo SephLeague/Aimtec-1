@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Aimtec.SDK;
-using Aimtec.SDK.Menu;
+﻿using Aimtec.SDK.Menu;
 using Aimtec;
 using Spell = Aimtec.SDK.Spell;
 using Aimtec.SDK.Orbwalking;
-using Aimtec.SDK.Menu.Components;
+using Aimtec.SDK.Events;
 
 namespace ESeries.Abstractions
 {
@@ -42,5 +36,27 @@ namespace ESeries.Abstractions
             Program.RootMenu.Attach();
         }
 
+
+        protected abstract void PreMove(object sender, Aimtec.SDK.Orbwalking.PreMoveEventArgs e);
+
+        protected abstract void PreAttack(object sender, Aimtec.SDK.Orbwalking.PreAttackEventArgs e);
+
+        protected abstract void PostAttack(object sender, Aimtec.SDK.Orbwalking.PostAttackEventArgs e);
+
+        protected abstract void OnUpdate();
+
+        protected abstract void Combo();
+
+        protected abstract void Harass();
+
+        protected abstract void Laneclear();
+
+        protected abstract void Lasthit();
+
+        protected abstract void Killsteal();
+
+        protected abstract void OnPresent();
+
+        protected abstract void OnDash(object sender, Dash.DashArgs e);
     }
 }
