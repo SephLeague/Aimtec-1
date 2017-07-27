@@ -8,6 +8,7 @@ using Aimtec.SDK.Menu.Config;
 using Aimtec.SDK.Prediction.Skillshots;
 using Aimtec.SDK.TargetSelector;
 using Aimtec.SDK.Util;
+using Aimtec.SDK.Util.Cache;
 using ESeries.Abstractions;
 using System;
 using System.Collections.Generic;
@@ -25,13 +26,13 @@ namespace ESeries.Champions
         {
             Console.WriteLine("E::Xerath Loaded.");
 
-            Q = new Aimtec.SDK.Spell(SpellSlot.Q, 1450);
+            Q = new Aimtec.SDK.Spell(SpellSlot.Q, 1550);
             W = new Aimtec.SDK.Spell(SpellSlot.W, 1100);
             E = new Aimtec.SDK.Spell(SpellSlot.E, 1050);
             R = new Aimtec.SDK.Spell(SpellSlot.R, 2500);
 
             Q.SetSkillshot(0.6f, 95f, float.MaxValue, false, Aimtec.SDK.Prediction.Skillshots.SkillshotType.Line);
-            Q.SetCharged("XerathArcanopulseChargeUp", "XerathArcanopulseChargeUp", 750, 1550, 1.5f);
+            Q.SetCharged("XerathArcanopulseChargeUp", "XerathArcanopulseChargeUp", 750, 1550, 3.0f);
 
             W.SetSkillshot(0.7f, 125f, float.MaxValue, false, Aimtec.SDK.Prediction.Skillshots.SkillshotType.Circle, false, HitChance.Medium);
             E.SetSkillshot(0.25f, 60f, 1400f, true, Aimtec.SDK.Prediction.Skillshots.SkillshotType.Line, false, HitChance.Medium);
@@ -43,8 +44,26 @@ namespace ESeries.Champions
             Orbwalker.PreAttack += this.Orbwalker_PreAttack;
             Orbwalker.PreMove += this.Orbwalker_PreMove;
             Render.OnPresent += this.OnPresent;
-
+            Dash.HeroDashed += Dash_HeroDashed;
             this.Attach();
+        }
+
+        private void Dash_HeroDashed(object sender, Dash.DashArgs e)
+        {
+            if (this.Config["Misc"]["AntiDash"].Enabled)
+            {
+                if (e.Unit.IsValidTarget())
+                {
+                    if (e.EndPos.Distance(Player) <= E.Range)
+                    {
+                        var pred = E.GetPrediction(e.Unit);
+                        if (pred != null && pred.HitChance >= E.HitChance)
+                        {
+                            E.Cast(pred.CastPosition);
+                        }
+                    }
+                }
+            }
         }
 
         private void Orbwalker_PreMove(object sender, Aimtec.SDK.Orbwalking.PreMoveEventArgs e)
@@ -88,34 +107,38 @@ namespace ESeries.Champions
 
         private void Menu()
         {
-            var qmenu = new Menu("Q", "Q")
+            var combo = new Menu("Combo", "Combo")
             {
-                new MenuBool("Combo", "Combo"),
-                new MenuBool("Harass", "Harass"),
-                new MenuBool("Killsteal", "Killsteal"),
-                new MenuBool("Laneclear", "Laneclear"),
+                new MenuBool("Q", "Q"),
+                new MenuBool("W", "W"),
+                new MenuBool("E", "E"),
             };
 
-
-            var wmenu = new Menu("W", "W")
+            var harass = new Menu("Harass", "Harass")
             {
-                new MenuBool("Combo", "Combo"),
-                new MenuBool("Harass", "Harass"),
-                new MenuBool("Killsteal", "Killsteal"),
-                new MenuBool("Laneclear", "Laneclear"),
+                new MenuBool("Q", "Q"),
+                new MenuBool("W", "W"),
+                new MenuBool("E", "E"),
             };
 
-            var emenu = new Menu("E", "E")
+            var killsteal = new Menu("Killsteal", "Killsteal")
             {
-                new MenuBool("Combo", "Combo"),
-                new MenuBool("Harass", "Harass"),
-                new MenuBool("Killsteal", "Killsteal"),
-                new MenuBool("Laneclear", "Laneclear"),
+                new MenuBool("Q", "Q"),
+                new MenuBool("W", "W"),
+                new MenuBool("E", "E"),
+                new MenuBool("R", "R"),
             };
 
+            var laneclear = new Menu("Laneclear", "Laneclear")
+            {
+                new MenuBool("Q", "Q"),
+                new MenuBool("W", "W"),
+                new MenuBool("E", "E"),
+            };
+
+          
             var rmenu = new Menu("R", "R")
             {
-                new MenuBool("Killsteal", "Killsteal"),
                 new MenuList("RMode", "R Mode", new string[] { "On Tap", "Autocast" }, 0),
                 new MenuList("RTargetSelectMode", "Target Mode", new string[] { "Target Selector", "Closest to Mouse", "Least cast", "Auto" },  3),
                 new MenuBool("UseDelays", "Use Delays", false),
@@ -124,6 +147,12 @@ namespace ESeries.Champions
                 new MenuSlider("Delay2", "Delay 3", 0, 0, 3000),
                 new MenuSlider("Delay3", "Delay 4", 0, 0, 3000),
                 new MenuSlider("Delay4", "Delay 5", 0, 0, 3000),
+            };
+
+
+            var misc = new Menu("Misc", "Misc")
+            {
+                new MenuBool("AntiDash", "Anti Dash"),
             };
 
             TapKey = new MenuKeyBind("TapKey", "Tap Key", Aimtec.SDK.Util.KeyCode.T, KeybindType.Press);
@@ -152,9 +181,10 @@ namespace ESeries.Champions
                 new MenuBool("DrawR", "Draw R", false),
             };
 
-            this.Config.Add(qmenu);
-            this.Config.Add(wmenu);
-            this.Config.Add(emenu);
+            this.Config.Add(combo);
+            this.Config.Add(harass);
+            this.Config.Add(killsteal);
+            this.Config.Add(laneclear);
             this.Config.Add(rmenu);
             this.Config.Add(hcMenu);
             this.Config.Add(drawmenu);
@@ -215,7 +245,6 @@ namespace ESeries.Champions
             {
                 if (args.GetNewValue<MenuKeyBind>().Value)
                 {
-                    Console.WriteLine("trigged " + Game.TickCount);
                     CastR(RMode.OnTap);
                 }
             }
@@ -223,6 +252,8 @@ namespace ESeries.Champions
 
         private void CastR(RMode mode)
         {
+            R.Range = UltRange;
+
             var targetSelectionMode = (RTSMode)this.Config["R"]["RTargetSelectMode"].Value;
 
             Obj_AI_Hero target = null;
@@ -275,7 +306,7 @@ namespace ESeries.Champions
 
         private void Combo()
         {
-            if (this.Config["E"]["Combo"].Enabled)
+            if (this.Config["Combo"]["E"].Enabled)
             {
                 var etarget = TargetSelector.GetTarget(E.Range);
                 if (etarget != null)
@@ -284,7 +315,7 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["Q"]["Combo"].Enabled)
+            if (this.Config["Combo"]["Q"].Enabled)
             {
                 var qtarget = TargetSelector.GetTarget(Q.ChargedMaxRange);
 
@@ -294,7 +325,7 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["W"]["Combo"].Enabled)
+            if (this.Config["Combo"]["W"].Enabled)
             {
                 var wtarget = TargetSelector.GetTarget(W.Range);
                 if (wtarget != null)
@@ -306,7 +337,7 @@ namespace ESeries.Champions
 
         private void Harass()
         {
-            if (this.Config["E"]["Combo"].Enabled)
+            if (this.Config["Harass"]["E"].Enabled)
             {
                 var etarget = TargetSelector.GetTarget(E.Range);
                 if (etarget != null)
@@ -315,7 +346,7 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["Q"]["Combo"].Enabled)
+            if (this.Config["Harass"]["Q"].Enabled)
             {
                 var qtarget = TargetSelector.GetTarget(Q.ChargedMaxRange);
 
@@ -325,7 +356,7 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["W"]["Combo"].Enabled)
+            if (this.Config["Harass"]["W"].Enabled)
             {
                 var wtarget = TargetSelector.GetTarget(W.Range);
                 if (wtarget != null)
@@ -337,7 +368,7 @@ namespace ESeries.Champions
 
         private void Killsteal()
         {
-            if (this.Config["E"]["Killsteal"].Enabled)
+            if (this.Config["Killsteal"]["E"].Enabled)
             {
                 var target = TargetSelector.Implementation.GetOrderedTargets(E.Range).Where(x => x.Health < Player.GetSpellDamage(x, SpellSlot.E)).FirstOrDefault();
                 if (target != null)
@@ -346,7 +377,7 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["Q"]["Killsteal"].Enabled)
+            if (this.Config["Killsteal"]["Q"].Enabled)
             {
                 var target = TargetSelector.Implementation.GetOrderedTargets(E.Range).Where(x => x.Health < Player.GetSpellDamage(x, SpellSlot.Q)).FirstOrDefault();
                 if (target != null)
@@ -355,7 +386,7 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["W"]["Killsteal"].Enabled)
+            if (this.Config["Killsteal"]["W"].Enabled)
             {
                 var target = TargetSelector.Implementation.GetOrderedTargets(W.Range).Where(x => x.Health < Player.GetSpellDamage(x, SpellSlot.W)).FirstOrDefault();
                 if (target != null)
@@ -364,7 +395,7 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["R"]["Killsteal"].Enabled)
+            if (this.Config["Killsteal"]["R"].Enabled)
             {
                 if (this.UltimateTracker.CastingUltimate)
                 {
@@ -379,7 +410,7 @@ namespace ESeries.Champions
 
         private void Laneclear()
         {
-            if (this.Config["W"]["Laneclear"].Enabled)
+            if (this.Config["Laneclear"]["W"].Enabled)
             {
                 var result = GetCircularClearLocation(W.Range, W.Width, 2);
                 if (result != null && result.numberOfMinionsHit >= 2)
@@ -388,28 +419,22 @@ namespace ESeries.Champions
                 }
             }
 
-            if (this.Config["Q"]["Laneclear"].Enabled)
+            if (this.Config["Laneclear"]["Q"].Enabled)
             {
                 var result = GetLineClearLocation(Q.ChargedMaxRange, Q.Width);
-                if (result != null && result.numberOfMinionsHit >= 2)
+                if (result != null)
                 {
                     if (result.numberOfMinionsHit >= 2)
                     {
                         Q.Cast(result.CastPosition);
                     }
 
-                    /*
+
                     else if (Q.IsCharging && result.numberOfMinionsHit >= 1 && Q.ChargePercent > 80)
                     {
                         Q.Cast(result.CastPosition);
                     }
-                    */
                 }
-            }
-
-            if (this.Config["E"]["Laneclear"].Enabled)
-            {
-
             }
         }
 
@@ -433,7 +458,7 @@ namespace ESeries.Champions
 
 
         private void OnPresent()
-        { 
+        {
             if (this.Config["Drawings"]["DrawQ"].Enabled)
             {
                 Render.Circle(Player.Position, Q.ChargedMaxRange, 36, System.Drawing.Color.White);
