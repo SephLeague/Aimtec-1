@@ -28,9 +28,10 @@ namespace ESeries.Helpers
         public static LaneclearResult GetCircularClearLocation(float range, float width, int minHit)
         {
             var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(range));
+
             var positions = minions.Select(x => x.ServerPosition.To2D()).ToList();
 
-            if (positions.Any())
+            if (positions.Any() && minHit == 1)
             {
                 return new LaneclearResult(1, positions.FirstOrDefault().To3D());
             }
