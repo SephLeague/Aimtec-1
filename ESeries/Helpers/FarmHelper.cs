@@ -29,55 +29,56 @@ namespace ESeries.Helpers
         {
             var minions = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(range));
 
-            var positions = minions.Select(x => x.ServerPosition.To2D()).ToList();
+            var allPositions = minions.Select(x => x.ServerPosition.To2D()).ToList();
 
-            if (positions.Any() && minHit == 1)
+            if (minHit == 1 && allPositions.Any())
             {
-                return new LaneclearResult(1, positions.FirstOrDefault().To3D());
+                return new LaneclearResult(1, allPositions.FirstOrDefault().To3D());
             }
 
-            var positionCount = positions.Count;
+            var positionCount = allPositions.Count;
 
-            var lcount = Math.Max(positionCount, 4);
+            var lcount = Math.Min(positionCount, 5);
 
-            if (positions.Count >= minHit)
+            HashSet<LaneclearResult> results = new HashSet<LaneclearResult>();
+
+            void CheckResult(Vector3 c)
             {
-                Vector2 center;
-                float radius;
-
-                Mec.FindMinimalBoundingCircle(positions, out center, out radius);
-
-                HashSet<LaneclearResult> results = new HashSet<LaneclearResult>();
-
-                var hitMinions = minions.Where(x => x.Distance(center) <= 0.95f * radius);
+                var hitMinions = allPositions.Where(x => x.Distance(c) <= 0.95f * width);
 
                 var count = hitMinions.Count();
 
-                var result = new LaneclearResult(count, center.To3D());
+                if (count >= minHit)
+                {
+                    var result = new LaneclearResult(count, c);
+                    results.Add(result);
+                }
+            }
 
-                results.Add(result);
+            if (allPositions.Count >= minHit)
+            {
+                Vector2 center;
+
+                float radius;
+
+                Mec.FindMinimalBoundingCircle(allPositions, out center, out radius);
+
+                if (center.IsZero)
+                {
+                    return new LaneclearResult(0, Vector3.Zero);
+                }
+
+                CheckResult(center.To3D());
 
                 for (int i = 0; i < lcount; i++)
                 {
-                    for (int j = 0; j < count; j++)
-                    {
-                        if (i == j)
-                        {
-                            continue;
-                        }
-
-                        var positions2 = new Vector2[] { positions[i], positions[j] };
+                    for (int j = 0; j < lcount; j++)
+                    {    
+                        var positions = new List<Vector2> { allPositions[i], allPositions[j] };
 
                         Mec.FindMinimalBoundingCircle(positions, out center, out radius);
 
-                        hitMinions = minions.Where(x => x.Distance(center) <= 0.9f * radius);
-
-                        count = hitMinions.Count();
-
-                        if (count >= minHit)
-                        {
-                            results.Add(new LaneclearResult(count, center.To3D()));
-                        }
+                        CheckResult(center.To3D());
                     }
                 }
 
