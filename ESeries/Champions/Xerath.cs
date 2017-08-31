@@ -92,19 +92,17 @@ namespace ESeries.Champions
                 CastR(RMode.Autocast);
             }
 
-            if (GlobalKeys.ComboKey.Active)
+            switch (Orbwalker.Implementation.Mode)
             {
-                this.Combo();
-            }
-
-            else if (GlobalKeys.HarassKey.Active)
-            {
-                this.Harass();
-            }
-
-            else if (GlobalKeys.WaveClearKey.Active)
-            {
-                this.Laneclear();
+                case OrbwalkingMode.Combo:
+                    this.Combo();
+                    break;
+                case OrbwalkingMode.Mixed:
+                    this.Harass();
+                    break;
+                case OrbwalkingMode.Laneclear:
+                    this.Laneclear();
+                    break;
             }
         }
 
@@ -139,7 +137,7 @@ namespace ESeries.Champions
                 new MenuBool("E", "E"),
             };
 
-          
+
             var rmenu = new Menu("R", "R")
             {
                 new MenuList("RMode", "R Mode", new string[] { "On Tap", "Autocast" }, 0),
@@ -199,7 +197,7 @@ namespace ESeries.Champions
         {
             if (args.InternalName == "hcQ")
             {
-                this.Q.HitChance = (HitChance) args.GetNewValue<MenuList>().Value + 3;
+                this.Q.HitChance = (HitChance)args.GetNewValue<MenuList>().Value + 3;
             }
 
             if (args.InternalName == "hcW")
@@ -211,7 +209,7 @@ namespace ESeries.Champions
             {
                 this.E.HitChance = (HitChance)args.GetNewValue<MenuList>().Value + 3;
             }
-            
+
             if (args.InternalName == "hcR")
             {
                 this.R.HitChance = (HitChance)args.GetNewValue<MenuList>().Value + 3;
@@ -294,7 +292,7 @@ namespace ESeries.Champions
                     if (Game.TickCount - UltimateTracker.LastChargeCastTime < delay)
                     {
                         return;
-                    } 
+                    }
                 }
 
                 R.Cast(target);
@@ -445,12 +443,12 @@ namespace ESeries.Champions
             {
                 if (!this.Orbwalker.IsWindingUp && !Orbwalker.CanAttack())
                 {
-                    var minion = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(E.Range) && HealthPrediction.Implementation.GetPrediction(x, (int) (E.Delay * 1000 + Player.Distance(x) / E.Speed * 1000)) <= Player.GetSpellDamage(x, SpellSlot.E) && E.GetPrediction(x).HitChance >= E.HitChance).FirstOrDefault();
+                    var minion = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(E.Range) && HealthPrediction.Implementation.GetPrediction(x, (int)(E.Delay * 1000 + Player.Distance(x) / E.Speed * 1000)) <= Player.GetSpellDamage(x, SpellSlot.E) && E.GetPrediction(x).HitChance >= E.HitChance).FirstOrDefault();
                     if (minion != null)
                     {
                         var pred = E.GetPrediction(minion);
                         E.Cast(pred.CastPosition);
-                    } 
+                    }
                 }
             }
         }
@@ -507,7 +505,7 @@ namespace ESeries.Champions
             public UltTracker()
             {
                 Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
-               // SpellBook.OnCastSpell += SpellBook_OnCastSpell;
+                // SpellBook.OnCastSpell += SpellBook_OnCastSpell;
             }
 
             public bool CastingUltimate => ObjectManager.GetLocalPlayer().HasBuff("XerathLocusOfPower2");
