@@ -443,7 +443,7 @@ namespace ESeries.Champions
             {
                 if (!this.Orbwalker.IsWindingUp && !Orbwalker.CanAttack())
                 {
-                    var minion = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(E.Range) && HealthPrediction.Implementation.GetPrediction(x, (int)(E.Delay * 1000 + Player.Distance(x) / E.Speed * 1000)) <= Player.GetSpellDamage(x, SpellSlot.E) && E.GetPrediction(x).HitChance >= E.HitChance).FirstOrDefault();
+                    var minion = ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValidSpellTarget(E.Range) && HealthPrediction.Instance.GetPrediction(x, (int)(E.Delay * 1000 + Player.Distance(x) / E.Speed * 1000)) <= Player.GetSpellDamage(x, SpellSlot.E) && E.GetPrediction(x).HitChance >= E.HitChance).FirstOrDefault();
                     if (minion != null)
                     {
                         var pred = E.GetPrediction(minion);
