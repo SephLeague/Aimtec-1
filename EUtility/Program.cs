@@ -1,0 +1,30 @@
+﻿using System;
+using Aimtec.SDK.Events;
+using Aimtec.SDK.Menu;
+
+namespace EUtility
+{
+    class Program
+    {
+        private static Menu Root { get; set; }
+
+        static void Main(string[] args)
+        {
+            GameEvents.GameStart += GameEventsOnGameStart;
+        }
+
+        private static void GameEventsOnGameStart()
+        {
+            Root = new Menu("EUtility", "Trackeker", true);
+
+            OHTracker overheadtracker = new OHTracker(Root);
+            
+            overheadtracker.Load();
+
+            Root.Attach();
+
+            Console.WriteLine("EUtility Loaded");
+
+        }
+    }
+}
