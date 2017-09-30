@@ -18,7 +18,7 @@ namespace EUtility
 
         internal static string ResourcePath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Trackeker");
+            "EUtility");
 
         public static Dictionary<string, Bitmap> BitMapCache = new Dictionary<string, Bitmap>();
 

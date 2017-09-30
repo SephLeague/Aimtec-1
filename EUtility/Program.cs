@@ -15,7 +15,7 @@ namespace EUtility
 
         private static void GameEventsOnGameStart()
         {
-            Root = new Menu("EUtility", "Trackeker", true);
+            Root = new Menu("EUtility", "EUtility", true);
 
             OHTracker overheadtracker = new OHTracker(Root);
             
