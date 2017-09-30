@@ -73,6 +73,12 @@ namespace EUtility
             {
                 foreach (var spell in this.Unit.SpellBook.Spells)
                 {
+                    if (spell.Name == "BaseSpell")
+                    {
+                        Console.WriteLine($"Base Spell. Report this bug to eox {this.Unit.ChampionName} {spell.Name} {spell.Slot} {spell.State}");
+                        continue;
+                    }
+
                     if (spell.Slot == SpellSlot.Summoner1 || spell.Slot == SpellSlot.Summoner2)
                     {
                         var summSpell = new SpellObject(spell, 32, 32);
@@ -144,9 +150,10 @@ namespace EUtility
                 var bitmap = Utility.GetBitMap(this.Spell.Name);
                 if (bitmap != null)
                 {
-                    var resized = Utility.ResizeImage(Utility.GetBitMap(this.Spell.Name),
+                    var resized = Utility.ResizeImage(bitmap,
                         new Size(this.Width, this.Height));
                     this.SpellTexture = new Texture(resized);
+
                 }
 
                 else
