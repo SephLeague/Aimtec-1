@@ -180,14 +180,14 @@ namespace EUtility
                 if (!this.Ready)
                 {
                     Render.Rectangle(pos, 32, 32, Color.FromArgb(150, 0, 0, 0));
-                    Render.Text(this.CooldownTime.ToString(), spellRect,
+                    Render.Text(this.CooldownTime.ToString("0.0"), spellRect,
                         RenderTextFlags.VerticalCenter | RenderTextFlags.HorizontalCenter, Color.White);
                 }
             }
 
-            public bool Ready => this.CooldownTime == 0;
+            public bool Ready => this.CooldownTime <= 0.0f;
 
-            public int CooldownTime => (int) Math.Max(0, this.Spell.CooldownEnd - Game.ClockTime);
+            public float CooldownTime => this.Spell.CooldownEnd - Game.ClockTime;
         }
     }
 }
