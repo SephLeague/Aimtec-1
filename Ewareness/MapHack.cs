@@ -88,6 +88,12 @@ namespace Ewareness
                     dv.LastSeenTime = Game.TickCount;
                     dv.Position = dv.Hero.ServerPosition;
                 }
+
+                if (dv.Hero.IsDead)
+                {
+                    dv.Position = EnemySpawnPosition;
+                    dv.LastSeenTime = Game.TickCount;
+                }
             }
         }
 
