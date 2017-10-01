@@ -140,6 +140,7 @@ namespace Ewareness
                 for (int i = 0; i < Summoners.Count; i++)
                 {
                     var spell = Summoners[i];
+
                     if (spell != null)
                     {
                         var startPosition = this.BasePosition + new Vector2(-20, -25);
@@ -186,7 +187,15 @@ namespace Ewareness
 
                 if (this.IsSummoner)
                 {
-                    name = this.Spell.Name;
+                    if (this.Spell.Name.ToLower().Contains("smite"))
+                    {
+                        name = "SummonerSmite";
+                    }
+
+                    else
+                    {
+                        name = this.Spell.Name;
+                    }
                 }
 
                 else if (this.ParsedData != null)
@@ -208,8 +217,6 @@ namespace Ewareness
                     Console.WriteLine($"Could not find BitMap for {name}");
                 }
             }
-
-            public string RealName { get; set; }
 
             public bool IsSummoner => this.Spell.Slot == SpellSlot.Summoner1 || this.Spell.Slot == SpellSlot.Summoner2;
 

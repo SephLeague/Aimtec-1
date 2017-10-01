@@ -236,7 +236,10 @@ namespace ESeries.Champions
 
         private float UltRange
         {
-            get { return new float[] { 3520, 4840, 6160 }[Player.SpellBook.GetSpell(SpellSlot.R).Level - 1]; }
+            get
+            {
+                return new float[] { 3520, 4840, 6160 }[Math.Max(0, Player.SpellBook.GetSpell(SpellSlot.R).Level - 1)];
+            }
         }
 
         private void TapKey_ValueChanged(MenuComponent sender, ValueChangedArgs args)

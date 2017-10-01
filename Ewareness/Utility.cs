@@ -121,7 +121,6 @@ namespace Ewareness
         {
             if (ChampionDatas.ContainsKey(name))
             {
-                Console.WriteLine($"Loading local {name}");
                 return ChampionDatas[name];
             }
 
