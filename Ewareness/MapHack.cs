@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Media;
+using System.Net.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 using Aimtec;
@@ -37,14 +39,68 @@ namespace Ewareness
                 EnemySpawnPosition = sp.Position;
             }
 
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy || x.IsAlly))
+            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy))
             {
                 this.Data.Add(hero.NetworkId, new HeroMapInfo(hero));
             }
 
       
             Render.OnPresent += Render_OnPresent;
-           // Obj_AI_Base.OnTeleport += Obj_AI_Base_OnTeleport; //to do
+            Game.OnUpdate += Game_OnUpdate;
+           // AttackableUnit.OnEnterVisible += AttackableUnit_OnEnterVisible; //broken
+            Obj_AI_Base.OnTeleport += Obj_AI_Base_OnTeleport;
+        }
+
+        private void Game_OnUpdate()
+        {
+            foreach (var data in this.Data)
+            {
+                var dv = data.Value;
+
+                var mpos = ObjectManager.GetLocalPlayer().ServerPosition;
+                var dvpos = dv.Position;
+
+                var mcell = NavMesh.WorldToCell(mpos);
+                var dvcell = NavMesh.WorldToCell(dvpos);
+
+                var mgrass = mcell.Flags.HasFlag(NavCellFlags.Grass);
+                var enemygrass = dvcell.Flags.HasFlag(NavCellFlags.Grass);
+                var distance = mpos.Distance(dvpos);
+
+                if (distance <= 1200 && (!enemygrass || mgrass && distance < 500))
+                {
+                    if (!dv.Hero.IsVisible)
+                    {
+                        dv.Displaying = false;
+                    }
+                }
+
+                if (dv.IsRecalling && dv.RecallCancelTime - dv.RecallStartTime > 5500) //Recall completed
+                {
+                    dv.Position = EnemySpawnPosition;
+                    dv.IsRecalling = false;
+                    dv.RecallComplete = true;
+                }
+
+                if (dv.Hero.IsVisible)
+                {
+                    dv.Displaying = true;
+                    dv.LastSeenTime = Game.TickCount;
+                    dv.Position = dv.Hero.ServerPosition;
+                }
+            }
+        }
+
+        private void AttackableUnit_OnEnterVisible(AttackableUnit sender, EventArgs e)
+        {
+            var hero = sender as Obj_AI_Hero;
+
+            if (hero == null || hero.IsAlly)
+            {
+                return;
+            }
+
+            Data[hero.NetworkId].Displaying = true;
         }
 
         private void Obj_AI_Base_OnTeleport(Obj_AI_Base sender, Obj_AI_BaseTeleportEventArgs e)
@@ -56,7 +112,7 @@ namespace Ewareness
                 return;
             }
 
-            if (!hero.IsValid || !hero.IsEnemy)
+            if (!hero.IsValid || hero.IsAlly)
             {
                 return;
             }
@@ -69,13 +125,13 @@ namespace Ewareness
 
                 if (name.Contains("recall"))
                 {
+                    data.RecallStartTime = Game.TickCount;
                     data.IsRecalling = true;
                 }
 
                 else
                 {
-                    data.IsRecalling = false;
-                    data.RecallComplete = true;
+                    data.RecallCancelTime = Game.TickCount; 
                 }
             }
         }
@@ -91,34 +147,17 @@ namespace Ewareness
             {
                 var value = info.Value;
 
-                if (value.HeroTexture == null)
+                if (value.HeroTexture == null || !value.Displaying)
                 {
                     continue;
                 }
 
-                
-                if (value.Hero.IsVisible)
-                {
-                    value.LastSeenTime = Game.TickCount;
-                    value.Position = value.Hero.ServerPosition;
-                    continue;
-                }
- 
-                if (value.Hero == null || !value.Hero.IsValid || value.Hero.IsDead)
+                if (value.Hero == null || value.Hero.IsVisible || !value.Hero.IsValid || value.Hero.IsDead)
                 {
                     continue;
                 }
                 
-
-                var lastSeenPos = value.Hero.ServerPosition;
-
-                /*
-                if (value.RecallComplete)
-                {
-                    lastSeenPos = EnemySpawnPosition;
-                    value.RecallComplete = false;
-                }
-                */
+                var lastSeenPos = value.Position;
 
                 Vector2 mmPosition;
 
@@ -140,7 +179,7 @@ namespace Ewareness
 
                     var textPosition = new Aimtec.Rectangle((int)adjusted.X, (int)adjusted.Y, (int)(adjusted.X + 32), (int)(adjusted.Y + 32));
 
-                    Render.Text(text, textPosition, center, Color.Azure);
+                    Render.Text(text, textPosition, center, Color.White);
                 }
 
                 if (value.TimeMIA < 25000)
@@ -197,16 +236,28 @@ namespace Ewareness
                 this.LoadTexture();
             }
 
+            public Dictionary<string, string> RiotIsRetarded = new Dictionary<string, string>()
+            {
+                { "FiddleSticks", "Fiddlesticks" }
+            };
+
             public void LoadTexture()
             {
-                var bitmap = Utility.GetHeroBitMap(this.Hero.UnitSkinName);
+                string championName = this.Hero.UnitSkinName;
+
+                if (this.RiotIsRetarded.ContainsKey(championName))
+                {
+                    championName = this.RiotIsRetarded[championName];
+                }
+
+                var bitmap = Utility.GetHeroBitMap(championName);
                 if (bitmap != null)
                 {
                     var circular = Utility.CropImageToCircle(bitmap, 0, 0, bitmap.Width);
                     var resized = Utility.ResizeImage(circular,
                         new Size(32, 32));
                     var greyed = Utility.MakeGrayscale(resized);
-                    var outlined = Utility.AddCircleOutline(greyed, Color.OrangeRed, 2);
+                    var outlined = Utility.AddCircleOutline(greyed, Color.White, 2);
                     this.HeroTexture = new Texture(outlined);
                 }
 
@@ -219,7 +270,8 @@ namespace Ewareness
             public Texture HeroTexture { get; set; }
 
             public Obj_AI_Hero Hero { get; set; }
-            public int LastSeenTime { get; set; }
+
+            public int LastSeenTime { get; set; } 
 
             public int TimeMIA => Game.TickCount - this.LastSeenTime;
 
@@ -228,6 +280,12 @@ namespace Ewareness
             public bool RecallComplete { get; set; }
 
             public Vector3 Position { get; set; } = EnemySpawnPosition;
+
+            public bool Displaying { get; set; } = true;
+
+            public int RecallStartTime { get; set; }
+
+            public int RecallCancelTime { get; set; }
         }
     }
 

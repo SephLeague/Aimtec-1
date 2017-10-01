@@ -23,8 +23,18 @@ namespace Ewareness
 
         public void Load()
         {
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy || this.Config["DrawAllies"].Enabled))
+            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
             {
+                if (!this.Config["TrackMe"].Enabled && hero.IsMe)
+                {
+                    continue;
+                }
+
+                if (!this.Config["TrackAllies"].Enabled && hero.IsAlly)
+                {
+                    continue;
+                }
+
                 var floatingTracker = new FloatingTracker(hero);
                 FloatingTrackers.Add(floatingTracker);
             }
@@ -33,7 +43,8 @@ namespace Ewareness
         public void Menu(Menu root)
         {
             this.Config = new Menu("OVHTracker", "Overhead Tracker");
-            this.Config.Add(new MenuBool("DrawAllies", "Track Allies"));
+            this.Config.Add(new MenuBool("TrackAllies", "Track Allies"));
+            this.Config.Add(new MenuBool("TrackMe", "Track Me"));
 
             root.Add(this.Config);
         }
@@ -54,10 +65,16 @@ namespace Ewareness
                     continue;
                 }
 
-                if (tracker.Unit.IsAlly && !this.Config["DrawAllies"].Enabled)
+                if (tracker.Unit.IsAlly && !this.Config["TrackAllies"].Enabled)
                 {
                     continue;
                 }
+
+                if (tracker.Unit.IsMe && !this.Config["TrackMe"].Enabled)
+                {
+                    continue;
+                }
+
 
                 tracker.Draw();
             }
