@@ -1,7 +1,7 @@
 ﻿using System;
 using Aimtec.SDK.Menu;
 
-namespace EUtility
+namespace Ewareness
 {
     class WardTracker : IAwarenessModule
     {

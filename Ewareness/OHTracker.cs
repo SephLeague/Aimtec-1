@@ -8,7 +8,7 @@ using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 using Newtonsoft.Json;
 
-namespace EUtility
+namespace Ewareness
 {
     class OHTracker : IAwarenessModule
     {

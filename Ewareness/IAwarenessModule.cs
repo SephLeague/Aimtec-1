@@ -1,6 +1,6 @@
 ﻿using Aimtec.SDK.Menu;
 
-namespace EUtility
+namespace Ewareness
 {
     interface IAwarenessModule
     {

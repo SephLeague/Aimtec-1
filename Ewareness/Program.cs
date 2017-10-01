@@ -2,7 +2,7 @@
 using Aimtec.SDK.Events;
 using Aimtec.SDK.Menu;
 
-namespace EUtility
+namespace Ewareness
 {
     class Program
     {
@@ -15,7 +15,7 @@ namespace EUtility
 
         private static void GameEventsOnGameStart()
         {
-            Root = new Menu("EUtility", "EUtility", true);
+            Root = new Menu("Ewareness", "Ewareness", true);
 
             OHTracker overheadtracker = new OHTracker(Root);
             
@@ -27,7 +27,7 @@ namespace EUtility
 
             mapHack.Load();
 
-            Console.WriteLine("EUtility Loaded");
+            Console.WriteLine("Ewareness Loaded");
 
         }
     }

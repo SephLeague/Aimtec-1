@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 using Aimtec;
 using Newtonsoft.Json;
 
-namespace EUtility
+namespace Ewareness
 {
     static class Utility
     {
@@ -29,7 +29,7 @@ namespace EUtility
 
         internal static string ResourcePath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "EUtility");
+            "Ewareness");
 
         public static Dictionary<string, Bitmap> BitMapCache = new Dictionary<string, Bitmap>();
 

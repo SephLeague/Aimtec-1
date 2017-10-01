@@ -10,7 +10,7 @@ using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Menu.Theme;
 
-namespace EUtility
+namespace Ewareness
 {
     class MapHack : IAwarenessModule
     {

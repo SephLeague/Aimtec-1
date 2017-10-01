@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Serialization;
 
-namespace EUtility
+namespace Ewareness
 {
     using System;
     using System.Net;
