@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Aimtec;
 using System.Drawing;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
+using Newtonsoft.Json;
 
 namespace EUtility
 {
@@ -71,27 +73,58 @@ namespace EUtility
 
             public void FindSpells()
             {
+                //Summoners
                 foreach (var spell in this.Unit.SpellBook.Spells)
                 {
-                    if (spell.Name == "BaseSpell")
-                    {
-                        Console.WriteLine($"Base Spell. Report this bug to eox {this.Unit.ChampionName} {spell.Name} {spell.Slot} {spell.State}");
-                        continue;
-                    }
-
                     if (spell.Slot == SpellSlot.Summoner1 || spell.Slot == SpellSlot.Summoner2)
                     {
-                        var summSpell = new SpellObject(spell, 32, 32);
+                        var summSpell = new SpellObject(spell, null, 25, 25);
                         this.Summoners.Add(summSpell);
                     }
+                }
+                
+                var herodata = Utility.GetChampionData(Unit.ChampionName);
 
-                    else if (spell.Slot == SpellSlot.Q || spell.Slot == SpellSlot.W || spell.Slot == SpellSlot.E ||
-                        spell.Slot == SpellSlot.R)
+                if (herodata == null)
+                {
+                    Console.WriteLine("Data not found");
+                    return;
+                }
+
+                var spells = herodata.Spells;
+
+                for (int i = 0; i < spells.Length; i++)
+                {
+                    var jsp = spells[i];
+                    Aimtec.Spell spell = null;
+
+                    if (i == 0)
                     {
-                        var normalSpell = new SpellObject(spell, 32, 32);
+                        spell = this.Unit.GetSpell(SpellSlot.Q);
+                    }
+
+                    else if (i == 1)
+                    {
+                        spell = this.Unit.GetSpell(SpellSlot.W);
+                    }
+
+                    else if (i == 2)
+                    {
+                        spell = this.Unit.GetSpell(SpellSlot.E);
+                    }
+
+                    else if (i == 3)
+                    {
+                        spell = this.Unit.GetSpell(SpellSlot.R);
+                    }
+
+                    if (spell != null)
+                    {
+                        var normalSpell = new SpellObject(spell, jsp, 25, 25);
                         this.Spells.Add(normalSpell);
                     }
                 }
+     
             }
 
             public List<SpellObject> Summoners { get; set; } = new List<SpellObject>();
@@ -104,13 +137,14 @@ namespace EUtility
 
             public void DrawSummoners()
             {
-                for (int i = 0; i <= 1; i++)
+                for (int i = 0; i < Summoners.Count; i++)
                 {
                     var spell = Summoners[i];
+                    if (spell != null)
                     {
-                        var startPosition = this.Unit.FloatingHealthBarPosition + new Vector2(-25, -30);
+                        var startPosition = this.BasePosition + new Vector2(-20, -25);
 
-                        var offset = startPosition + new Vector2(0, 35 * i);
+                        var offset = startPosition + new Vector2(0, 30 * i);
 
                         spell.Draw(offset);
                     }
@@ -122,8 +156,8 @@ namespace EUtility
                 for (int i = 0; i < Spells.Count; i++)
                 {
                     var spellobj = Spells[i];
-                    var startSpellPos = this.BasePosition + new Vector2(10, -30);
-                    var pos = startSpellPos + new Vector2(i * 35, 0);
+                    var startSpellPos = this.BasePosition + new Vector2(10, -25);
+                    var pos = startSpellPos + new Vector2(i * 33, 0);
                     spellobj.Draw(pos);
                 }
             }
@@ -137,60 +171,89 @@ namespace EUtility
 
         public class SpellObject
         {
-            public SpellObject(Aimtec.Spell spell, int x, int y)
+            public SpellObject(Aimtec.Spell spell, Spell dData, int x, int y)
             {
                 this.Spell = spell;
                 this.Width = x;
                 this.Height = y;
+                this.ParsedData = dData;
                 this.LoadTexture();
             }
 
             public void LoadTexture()
             {
-                var bitmap = Utility.GetBitMap(this.Spell.Name);
+                string name = "";
+
+                if (this.IsSummoner)
+                {
+                    name = this.Spell.Name;
+                }
+
+                else if (this.ParsedData != null)
+                {
+                    var fullname = this.ParsedData.Image.Full;
+                    name = fullname.Remove(fullname.Length - 4, 4); // remove the extension 
+                }
+
+                var bitmap = Utility.GetSkillBitMap(name);
                 if (bitmap != null)
                 {
                     var resized = Utility.ResizeImage(bitmap,
                         new Size(this.Width, this.Height));
                     this.SpellTexture = new Texture(resized);
-
                 }
 
                 else
                 {
-                    Console.WriteLine($"Could not find BitMap for {Spell.Name}");
+                    Console.WriteLine($"Could not find BitMap for {name}");
                 }
             }
+
+            public string RealName { get; set; }
+
+            public bool IsSummoner => this.Spell.Slot == SpellSlot.Summoner1 || this.Spell.Slot == SpellSlot.Summoner2;
 
             public int Width { get; set; }
 
             public int Height { get; set; }
+
             public Texture SpellTexture { get; set; }
 
-            public Spell Spell { get; set; }
+            public Aimtec.Spell Spell { get; set; }
+
+            public Spell ParsedData { get; set; }
 
             public void Draw(Vector2 pos)
             {
-                if (this.SpellTexture == null)
-                {
-                    return;
-                }
-
                 var color = this.Ready ? Color.Green : Color.Red;
 
-                this.SpellTexture.Draw(pos);
+                if (this.SpellTexture != null)
+                {
+                    this.SpellTexture.Draw(pos);
+                }
 
                 Utility.DrawRectangleOutline(pos, this.Width, this.Height, 3, color);
 
-                var spellRect = new Aimtec.Rectangle((int)pos.X, (int)pos.Y, (int)pos.X + 32, (int)pos.Y + 32);
+                var spellRect = new Aimtec.Rectangle((int) pos.X, (int) pos.Y, (int) pos.X + 25, (int) pos.Y + 25);
 
-                if (!this.Ready)
+                var state = this.Spell.State;
+
+                if (state.HasFlag(SpellState.Cooldown) || state.HasFlag(SpellState.Unknown) ||
+                    state.HasFlag(SpellState.NotLearned) || state.HasFlag(SpellState.Disabled))
                 {
-                    Render.Rectangle(pos, 32, 32, Color.FromArgb(150, 0, 0, 0));
-                    Render.Text(this.CooldownTime.ToString("0.0"), spellRect,
-                        RenderTextFlags.VerticalCenter | RenderTextFlags.HorizontalCenter, Color.White);
+                    Render.Rectangle(pos, 25, 25, Color.FromArgb(150, 0, 0, 0));
+
+                    if (state.HasFlag(SpellState.Cooldown))
+                    {
+                        string cdString = this.CooldownTime < 1
+                            ? this.CooldownTime.ToString("0.0")
+                            : Math.Ceiling(this.CooldownTime).ToString();
+                        Render.Text(cdString, spellRect,
+                            RenderTextFlags.VerticalCenter | RenderTextFlags.HorizontalCenter, Color.White);
+                    }
                 }
             }
+
 
             public bool Ready => this.CooldownTime <= 0.0f;
 

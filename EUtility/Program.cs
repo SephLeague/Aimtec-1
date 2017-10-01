@@ -23,6 +23,10 @@ namespace EUtility
 
             Root.Attach();
 
+            MapHack mapHack = new MapHack(Root);
+
+            mapHack.Load();
+
             Console.WriteLine("EUtility Loaded");
 
         }
