@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Aimtec.SDK.Menu;
 
 namespace Ewareness
@@ -6,6 +6,11 @@ namespace Ewareness
     class WardTracker : IAwarenessModule
     {
         public void Load()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Load(Menu rootMenu)
         {
             throw new NotImplementedException();
         }
