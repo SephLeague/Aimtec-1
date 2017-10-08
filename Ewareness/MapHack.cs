@@ -12,6 +12,7 @@ using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Menu.Theme;
 using Aimtec.SDK.Util;
+using System.Diagnostics;
 
 namespace Ewareness
 {
@@ -21,16 +22,17 @@ namespace Ewareness
 
         public static Vector3 EnemySpawnPosition { get; set; }
 
-        public MapHack(Menu rootMenu)
+        public MapHack()
+        {
+     
+        }
+
+        public void Load(Menu rootMenu)
         {
             Config = new Menu("MapHack", "MapHack");
             Config.Add(new MenuBool("Enabled", "Enabled"));
             rootMenu.Add(Config);
-        }
 
-
-        public void Load()
-        {
             var sp = ObjectManager
                 .Get<GameObject>().FirstOrDefault(x => x.Type == GameObjectType.obj_HQ && x.Team != ObjectManager.GetLocalPlayer().Team);
 
@@ -41,14 +43,19 @@ namespace Ewareness
 
             foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy))
             {
+                if (hero.ChampionName == "PracticeTool_TargetDummy")
+                {
+                    continue;
+                }
+
                 this.Data.Add(hero.NetworkId, new HeroMapInfo(hero));
             }
 
       
             Render.OnPresent += Render_OnPresent;
             Game.OnUpdate += Game_OnUpdate;
-           // AttackableUnit.OnEnterVisible += AttackableUnit_OnEnterVisible; //broken
             Obj_AI_Base.OnTeleport += Obj_AI_Base_OnTeleport;
+            // AttackableUnit.OnEnterVisible += AttackableUnit_OnEnterVisible; //broken
         }
 
         private void Game_OnUpdate()
@@ -108,6 +115,7 @@ namespace Ewareness
 
             Data[hero.NetworkId].Displaying = true;
         }
+
 
         private void Obj_AI_Base_OnTeleport(Obj_AI_Base sender, Obj_AI_BaseTeleportEventArgs e)
         {
@@ -230,6 +238,10 @@ namespace Ewareness
         public void Unload()
         {
             Render.OnPresent -= Render_OnPresent;
+            Game.OnUpdate -= Game_OnUpdate;
+            Obj_AI_Base.OnTeleport -= Obj_AI_Base_OnTeleport;
+            this.Data = null;
+            this.Config.Dispose();
         }
 
         public Menu Config { get; set; }

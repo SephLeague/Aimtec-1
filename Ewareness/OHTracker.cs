@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Aimtec;
 using System.Drawing;
+using System.IO;
 using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
@@ -12,19 +13,26 @@ namespace Ewareness
 {
     class OHTracker : IAwarenessModule
     {
-        public OHTracker(Menu root)
-        {
-            this.Menu(root);
-            Render.OnPresent += Render_OnPresent;
-        }
-
         public List<FloatingTracker> FloatingTrackers = new List<FloatingTracker>();
+
         public Menu Config { get; set; }
 
-        public void Load()
+        public void Load(Menu rootMenu)
         {
+            this.Menu(rootMenu);
+
             foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
             {
+                if (hero.ChampionName == "PracticeTool_TargetDummy")
+                {
+                    continue;
+                }
+
+                if (!this.Config["TrackEnemies"].Enabled && hero.IsEnemy)
+                {
+                    continue;
+                }
+
                 if (!this.Config["TrackMe"].Enabled && hero.IsMe)
                 {
                     continue;
@@ -38,21 +46,26 @@ namespace Ewareness
                 var floatingTracker = new FloatingTracker(hero);
                 FloatingTrackers.Add(floatingTracker);
             }
+
+            Render.OnPresent += Render_OnPresent;
         }
 
         public void Menu(Menu root)
         {
             this.Config = new Menu("OVHTracker", "Overhead Tracker");
             this.Config.Add(new MenuBool("TrackAllies", "Track Allies"));
+            this.Config.Add(new MenuBool("TrackEnemies", "Track Enemies"));
             this.Config.Add(new MenuBool("TrackMe", "Track Me"));
-
             root.Add(this.Config);
         }
 
 
         public void Unload()
         {
-            throw new NotImplementedException();
+            Render.OnPresent -= Render_OnPresent;
+            this.Config.Dispose();
+            this.Config = null;
+            this.FloatingTrackers = null;
         }
 
     

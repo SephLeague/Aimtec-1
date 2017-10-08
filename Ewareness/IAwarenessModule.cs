@@ -4,7 +4,7 @@ namespace Ewareness
 {
     interface IAwarenessModule
     {
-        void Load();
+        void Load(Menu rootMenu);
         void Unload();
         Menu Config { get; set; }
     }

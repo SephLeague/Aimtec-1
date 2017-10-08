@@ -7,7 +7,7 @@ namespace Ewareness
     {
         public Menu Config { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public void Load()
+        public void Load(Menu menu)
         {
             throw new NotImplementedException();
         }

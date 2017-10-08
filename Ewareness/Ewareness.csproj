@@ -55,6 +55,12 @@
   <ItemGroup>
     <Compile Include="ChampionJson.cs" />
     <Compile Include="MapHack.cs" />
+    <Compile Include="OHTrackerHud.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Utility.cs" />
     <Compile Include="HUDTracker.cs" />
     <Compile Include="IAwarenessModule.cs" />
@@ -65,6 +71,48 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\OhTrackerHud.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\OhTrackerHudSelf.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerBarrier.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerBoost.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerDot.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerExhaust.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerFlash.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerHaste.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerHeal.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerMana.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerSmite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SummonerTeleport.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
