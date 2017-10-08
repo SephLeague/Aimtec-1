@@ -135,7 +135,7 @@ namespace Ewareness
                                 ? this.Summoner1.TimeUntilReady.ToString("0.0")
                                 : Math.Ceiling(this.Summoner1.TimeUntilReady).ToString();
 
-                            var tpos = s1Bar + new Vector2((int) (this.Summoner1.statusBoxWidth / 2), 6);
+                            var tpos = s1Bar + new Vector2((int) (this.Summoner1.statusBoxWidth / 2) - 0.75f * Render.MeasureText(cdString), 6);
                             Render.Text(cdString, tpos, RenderTextFlags.VerticalCenter | RenderTextFlags.HorizontalCenter, Color.White);
                         }
                     }
@@ -241,7 +241,7 @@ namespace Ewareness
 
                         if (this.Summoner2.Spell.State.HasFlag(SpellState.Cooldown) && this.Summoner2.TimeUntilReady > 0.0f)
                         {
-                            string cdString = this.Summoner1.TimeUntilReady < 1
+                            string cdString = this.Summoner2.TimeUntilReady < 1
                                 ? this.Summoner2.TimeUntilReady.ToString("0.0")
                                 : Math.Ceiling(this.Summoner2.TimeUntilReady).ToString();
 
