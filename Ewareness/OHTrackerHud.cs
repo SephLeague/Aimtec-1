@@ -129,13 +129,13 @@ namespace Ewareness
                             this.Summoner1.CurrentColor);
 
 
-                        if (this.Summoner1.Spell.State.HasFlag(SpellState.Cooldown))
+                        if (this.Summoner1.Spell.State.HasFlag(SpellState.Cooldown) && this.Summoner1.TimeUntilReady > 0.0f)
                         {
                             string cdString = this.Summoner1.TimeUntilReady < 1
                                 ? this.Summoner1.TimeUntilReady.ToString("0.0")
                                 : Math.Ceiling(this.Summoner1.TimeUntilReady).ToString();
 
-                            var tpos = s1Bar + new Vector2((int) (this.Summoner1.statusBoxWidth / 2) - Render.MeasureText(cdString) / 2, 6);
+                            var tpos = s1Bar + new Vector2((int) (this.Summoner1.statusBoxWidth / 2), 6);
                             Render.Text(cdString, tpos, RenderTextFlags.VerticalCenter | RenderTextFlags.HorizontalCenter, Color.White);
                         }
                     }
@@ -149,13 +149,13 @@ namespace Ewareness
                         Render.Rectangle(s2Bar, this.Summoner2.CurrentWidth, this.Summoner2.statusBoxHeight,
                             this.Summoner2.CurrentColor);
 
-                        if (this.Summoner2.Spell.State.HasFlag(SpellState.Cooldown))
+                        if (this.Summoner2.Spell.State.HasFlag(SpellState.Cooldown) && this.Summoner2.TimeUntilReady > 0.0f)
                         {
-                            string cdString = this.Summoner1.TimeUntilReady < 1
-                                ? this.Summoner1.TimeUntilReady.ToString("0.0")
-                                : Math.Ceiling(this.Summoner1.TimeUntilReady).ToString();
+                            string cdString = this.Summoner2.TimeUntilReady < 1
+                                ? this.Summoner2.TimeUntilReady.ToString("0.0")
+                                : Math.Ceiling(this.Summoner2.TimeUntilReady).ToString();
 
-                            var tpos = s2Bar + new Vector2((int)(this.Summoner1.statusBoxWidth / 2) - Render.MeasureText(cdString) / 2, 6);
+                            var tpos = s2Bar + new Vector2((int)(this.Summoner2.statusBoxWidth / 2) - Render.MeasureText(cdString) / 2, 6);
                             Render.Text(cdString, tpos, RenderTextFlags.VerticalCenter | RenderTextFlags.HorizontalCenter, Color.White);
                         }
                     }
@@ -168,7 +168,7 @@ namespace Ewareness
                         var position = nSpellStart + new Vector2(i * 27, 0);
                         Render.Rectangle(position, sp.CurrentWidth, sp.statusBoxHeight, sp.CurrentColor);
 
-                        if (sp.Spell.State.HasFlag(SpellState.Cooldown))
+                        if (sp.Spell.State.HasFlag(SpellState.Cooldown) && sp.TimeUntilReady > 0.0f)
                         {
                             string cdString = sp.TimeUntilReady < 1
                                 ? sp.TimeUntilReady.ToString("0.0")
@@ -219,7 +219,7 @@ namespace Ewareness
                         Render.Rectangle(s1Bar, this.Summoner1.CurrentWidth, this.Summoner1.statusBoxHeight,
                             this.Summoner1.CurrentColor);
 
-                        if (this.Summoner1.Spell.State.HasFlag(SpellState.Cooldown))
+                        if (this.Summoner1.Spell.State.HasFlag(SpellState.Cooldown) && this.Summoner1.TimeUntilReady > 0.0f)
                         {
                             string cdString = this.Summoner1.TimeUntilReady < 1
                                 ? this.Summoner1.TimeUntilReady.ToString("0.0")
@@ -239,13 +239,13 @@ namespace Ewareness
                             this.Summoner2.CurrentColor);
 
 
-                        if (this.Summoner2.Spell.State.HasFlag(SpellState.Cooldown))
+                        if (this.Summoner2.Spell.State.HasFlag(SpellState.Cooldown) && this.Summoner2.TimeUntilReady > 0.0f)
                         {
                             string cdString = this.Summoner1.TimeUntilReady < 1
-                                ? this.Summoner1.TimeUntilReady.ToString("0.0")
-                                : Math.Ceiling(this.Summoner1.TimeUntilReady).ToString();
+                                ? this.Summoner2.TimeUntilReady.ToString("0.0")
+                                : Math.Ceiling(this.Summoner2.TimeUntilReady).ToString();
 
-                            var tpos = s2Bar + new Vector2((int)(this.Summoner1.statusBoxWidth / 2) - Render.MeasureText(cdString) / 2, 6);
+                            var tpos = s2Bar + new Vector2((int)(this.Summoner2.statusBoxWidth / 2), 6);
                             Render.Text(cdString, tpos, RenderTextFlags.VerticalCenter | RenderTextFlags.HorizontalCenter, Color.White);
                         }
                     }
