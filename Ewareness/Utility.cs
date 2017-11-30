@@ -27,6 +27,8 @@ namespace Ewareness
             }
         }
 
+        internal static string GameVersion = "7.23.1";
+
         internal static string ResourcePath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Ewareness");
@@ -148,7 +150,7 @@ namespace Ewareness
             try
             {
                 WebClient wb = new WebClient();
-                wb.DownloadFile($"http://ddragon.leagueoflegends.com/cdn/7.18.1/data/en_US/champion/{name}.json",
+                wb.DownloadFile($"http://ddragon.leagueoflegends.com/cdn/{GameVersion}/data/en_US/champion/{name}.json",
                     GetPathToJson(name));
                 return true;
             }
@@ -164,12 +166,12 @@ namespace Ewareness
 
         public static Bitmap DlSkillBmp(string name)
         {
-            return DownloadBitMap($"http://ddragon.leagueoflegends.com/cdn/7.18.1/img/spell/{name}.png");
+            return DownloadBitMap($"http://ddragon.leagueoflegends.com/cdn/{GameVersion}/img/spell/{name}.png");
         }
 
         public static Bitmap DlHeroBmp(string name)
         {
-            return DownloadBitMap($"http://ddragon.leagueoflegends.com/cdn/7.18.1/img/champion/{name}.png");
+            return DownloadBitMap($"http://ddragon.leagueoflegends.com/cdn/{GameVersion}/img/champion/{name}.png");
         }
 
         public static Bitmap DownloadBitMap(string link)
